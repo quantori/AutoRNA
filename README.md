@@ -9,7 +9,7 @@ This project focuses on training and inference processes for predicting RNA stru
 Clone repository 
 
 ```bash
-git clone 
+git clone https://github.com/quantori/RNAfold.git
 ```
 
 ## Usage
