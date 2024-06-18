@@ -89,7 +89,3 @@ The same output is produced for the training and inference pipeline. The structu
     └── true.pickle: Actual distance matrices for the test dataset.<br/>
 
 
-## Conclusion
-This README provides an overview of the RNAfold project, including its purpose, configuration, usage instructions, and output files structure.
-
-For detailed information, refer to specific files and folders within the project.
