@@ -1,7 +1,7 @@
 # RNAfold 
 
 ## Introduction
-This project is a pipeline for  predicting  tertiary RNA structure using Variational Autoencoder.
+This project is a pipeline for predicting tertiary RNA structure using a Variational Autoencoder.
 
 ## Getting started 
 
@@ -38,9 +38,9 @@ python src/inference.py
 ```
 
 ## Configuration
-The configuration file config.json is essential for both training and inference processes. It includes parameters such as batch size, number of epochs, data specifications, model architecture details, paths, and more. For the inference pipeline, you can use only the model_path, output_path, and pdb_path; pdb_path is the path for the PDB file you want to make predictions on.
-## Configuration Parameters Training
-- **description**: Description of the experiment.
+The configuration file config.json is essential for both training and inference processes. It includes parameters such as batch size, number of epochs, data specifications, model architecture details, paths, and more. You use only the model_path, output_path,  pdb_path, and SEED for the inference pipeline. 
+### Configuration Parameters for Training
+- **Description**: Description of the experiment.
 - **batch_size**: Batch size for the experiment.
 - **n_epoch**: Number of epochs for the experiment.
 - **max_data**: Maximum number of sequences in the experiment.
@@ -59,9 +59,14 @@ The configuration file config.json is essential for both training and inference 
 - **n_images_show**: Number of images to show in `file_generated`.
 - **jobs**: Parallel jobs for CPU training.
 
+### Configuration Parameters for Inference
 
 
-
+- **batch_size**: Batch size for the experiment.
+- **SEED**: Random seed for reproducibility.
+- **pdb_folder_path**: Folder where the pdb files are stored.
+- **output_path**: The folder for the results
+- **model_path**: The path for the trained model
 
 
 
@@ -69,30 +74,30 @@ The configuration file config.json is essential for both training and inference 
 The same output is produced for the training and inference pipeline. The structure of the folder is the following:
 
 
- - **data** : the folders with pdb files(omitted for github due to the size limits)<br/>
+ - **data** : the folders with pdb files(omitted for GitHub due to the size limits)<br/>
  - **experiments**  : the folder with the experiments<br/>
     - **ExperimentName**<br/>
-      - config : saved config<br/>
-      - images : produced images for test dataset (heatmaps)<br/>
-      - images_comparison : produced images for test dataset for different noise vectors<br/>
-      - model : trained model is stored in the folder <br/>
-      - results : graphical resutls for the loss function (mae)<br/>
-      - test_calcs : the saved pickle files for the visualiation<br/>
+      - config: saved config<br/>
+      - images: produced images for test dataset (heatmaps)<br/>
+      - images_comparison: produced images for test dataset for different noise vectors<br/>
+      - model: trained model is stored in the folder <br/>
+      - results: graphical resutls for the loss function (mae)<br/>
+      - test_calcs: the saved pickle files for the visualiation<br/>
  
  - **src** : the source files
-   - **config**  : the config folder for training and inference pipelines)
-   - **preprocessing** : the data preprocessing is happenning here
+   - **config** : the config folder for training and inference pipelines)
+   - **preprocessing**: the data preprocessing is happening here
    - **utils** : the utils files
    
 ## Output
 
-The same output is produced for the training and inference pipeline. Here is the list of folders produced:
+The same output is produced for the training and inference pipeline. Here is the example of the folders produced:
 - **AE_random_nz_1024_dropout0.5beta1.1_version_final**<br/>
      - **config** : saved config<br/>
      - **images** : produced images for test dataset (heatmaps)<br/>
-     - **images_comparison** : produced images for test dataset for different noise vectors<br/>
+     - **images_comparison**: produced images for test dataset for different noise vectors<br/>
      - **model** : trained model is stored in the folder <br/>
-     - **results** : graphical resutls for the loss function (mae)<br/>
+     - **results**: graphical results for the loss function (mae)<br/>
      - **test_calcs** : the saved pickle files for the visualiation<br/>
 
 ## Citation

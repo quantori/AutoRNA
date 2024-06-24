@@ -26,7 +26,6 @@ def run_data(data: Dataset):
 
     data.calculate_backbones()
     data.calculate_dist_matrix('backbone')
-
     return data
 
 

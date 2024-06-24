@@ -20,7 +20,6 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 if __name__ == '__main__':
     with open('src/config/config.json', 'r') as f:
         CONFIG = json.load(f)
-    print(CONFIG)
     CONFIG = init_experiment(CONFIG)
     log_file = os.path.join(CONFIG['results_path'], CONFIG['logs'])
     file = open(log_file, mode='w', newline='')

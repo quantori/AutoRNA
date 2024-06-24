@@ -1,15 +1,7 @@
 {
     "batch_size": 64,
-    "min_length": 4,
-    "max_length": 64,
-    "max_data" : 5500,
-    "jobs": 10,
     "SEED": 111,
-    "ratio_arr": [0.8, 0.95, 1.0],
-    "proportion": 1.0,
     "model_path" : "experiments/AE_random_nz_1024_dropout0.5beta1.1/model",
-    "exp_path": "experiments/AE_random_nz_1024_dropout0.5beta1.1",
-    "pdb_folder_path": "data/rna_data_v1",
-    "output_path": "experiments/AE_random_nz_1024_dropout0.5beta1.1/",
-    "pdb_path": "experiments/AE_random_nz_1024_dropout0.5beta1.1/pdb_path/"
+    "output_path": "experiments/output_inference/",
+    "pdb_folder_path": "data/rna_data_v1_small"
 }

@@ -1,7 +1,7 @@
 from preprocessing.preprocessing import RNADataset, train_val_test_split
 from vae import VAE, Loss
 from utils.visualization import ExperimentVisualizer
-import warnings
+
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -12,9 +12,7 @@ import time
 from preprocessing.dataset import InitialDataset, run_data
 import random
 
-warnings.filterwarnings("ignore")
-warnings.warn("This is a warning message", UserWarning)
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 
 class InferencePipeline:
     def __init__(self, config , test_loader):
@@ -163,32 +161,33 @@ class InferencePipeline:
         visualizer.visualize_five()
 
 if __name__ == '__main__':
+    with open('src/config/config.json','r')as f:
+        config_train = json.load(f)
+
     with open('src/config/config_inference.json', 'r') as f:
-        CONFIG = json.load(f)
+        config_test = json.load(f)
+
+    CONFIG = {**config_train, **config_test} # rewrite on top the test configuration #TODO : Make more elegant
+    print(CONFIG)
     random.seed(CONFIG['SEED'])
     np.random.seed(CONFIG['SEED'])
     torch.manual_seed(CONFIG['SEED'])
     CONFIG['experiment_path'] = CONFIG['output_path']
     CONFIG['test_calcs'] = os.path.join(CONFIG['output_path'], "test_calcs")
     CONFIG['image_path'] = os.path.join(CONFIG['output_path'], "images")
-    list_of_folders = [CONFIG['output_path'], CONFIG['test_calcs']]
+    list_of_folders = [CONFIG['output_path'], CONFIG['test_calcs'], CONFIG['image_path']]
     for folder in list_of_folders:
         if not os.path.exists(folder):
             os.makedirs(folder)
 
     raw_dataset = InitialDataset(CONFIG)
     raw_dataset = run_data(raw_dataset)
-    (train_dataset, val_dataset, test_dataset) = train_val_test_split(raw_dataset,
-                                                                      ratio=CONFIG['ratio_arr'],
-                                                                      proportion=CONFIG['proportion'])
+    (_,_, test_dataset) = train_val_test_split(raw_dataset,
+                                                                      ratio=[0.0,0.0,1.0],
+                                                                      proportion=1.0)
 
-    data_train = RNADataset(train_dataset, CONFIG)
-    data_val = RNADataset(val_dataset, CONFIG)
     data_test = RNADataset(test_dataset, CONFIG)
-
-    train_loader = DataLoader(data_train, batch_size=CONFIG['batch_size'], shuffle=True)
-    val_loader = DataLoader(data_val, batch_size=CONFIG['batch_size'], shuffle=True)
-    test_loader = DataLoader(data_test, batch_size=CONFIG['batch_size'], shuffle=True)
+    test_loader = DataLoader(data_test, batch_size=CONFIG['batch_size'], shuffle=False)
 
     pipeline = InferencePipeline(CONFIG, test_loader)
     pipeline.run_inference()
