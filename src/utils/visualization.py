@@ -4,7 +4,7 @@ import math
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import os
-from matplotlib.patches import Circle
+
 
 class ExperimentVisualizer:
     """
@@ -141,9 +141,6 @@ class ExperimentVisualizer:
         for i in range(self.pred_arr.shape[0]):
             sequences = self.sequences_arr[i, :]
             img_size = int(math.sqrt(self.pred_arr.shape[1]))
-            seq_reshaped = sequences.reshape(img_size, 4)
-            x_labels = self.sequence_to_labels(seq_reshaped)
-
             pred = self.pred_arr[i, :]
             true = self.true_arr[i, :]
             sequences = self.sequences_arr[i, :]
@@ -207,8 +204,6 @@ class ExperimentVisualizer:
                                 title_fontsize=32,
                                 axis_labelsize=24)
             ax0.set_aspect('equal')
-
-
             # Store the y-limits to apply the same to all plots
             y_limits = ax0.get_ylim()
 
@@ -217,7 +212,7 @@ class ExperimentVisualizer:
                 axs = fig.add_subplot(gs[j + 1])  # Start from index 1 without a gap
                 filtered_pred_single = five[j, :].reshape(img_size, img_size)
                 filtered_pred_single = filtered_pred_single[non_zero_indices, :][:, non_zero_indices]
-                if j==2:
+                if j == 2:
                     title = "Predicted versions"
                 else:
                     title = None
@@ -235,10 +230,10 @@ class ExperimentVisualizer:
             # Only draw color bar for the last subplot, shared across all
             cbar = plt.colorbar(ax0.get_images()[0], cax=cbar_ax)
             cbar.ax.tick_params(labelsize=20)  # Set the colorbar tick label size
-            plt.tight_layout(rect=[0, 0, 0.9, 1])  # Adjust layout to make space for colorbar
+            #plt.constrained_layout(rect=[0, 0, 0.9, 1])  # Adjust layout to make space for colorbar
             fig.savefig(os.path.join(self.folder_to_store, f'heatmap_generation_{i}.png'))
             plt.close(fig)
-
+    """
     def draw_point_cloud(points_3d, points_3d_true, features, output_filename, x_lim=None, y_lim=None, z_lim=None):
         plt.style.use('bmh')
         x = points_3d[:, 0]
@@ -293,10 +288,10 @@ class ExperimentVisualizer:
 
         plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
         plt.savefig(output_filename, dpi=400)
-
+    
     def compute_centroid(points):
         return np.mean(points, axis=0)
-
+    
     def align_points(set1, set2):
         set1, set2 = np.asarray(set1), np.asarray(set2)
         centroid1 = compute_centroid(set1)
@@ -312,14 +307,14 @@ class ExperimentVisualizer:
         t = centroid2 - R @ centroid1
         aligned_set1 = (R @ set1.T).T + t
         return aligned_set1
-
+    
     def get_global_limits(points_3d_list):
         all_points = np.concatenate(points_3d_list, axis=0)
         x_lim = (all_points[:, 0].min(), all_points[:, 0].max())
         y_lim = (all_points[:, 1].min(), all_points[:, 1].max())
         z_lim = (all_points[:, 2].min(), all_points[:, 2].max())
         return x_lim, y_lim, z_lim
-
+    
     def distance_geometry(non_zero_submatrix):
         N = non_zero_submatrix.shape[0]
         J = np.eye(N) - np.ones((N, N)) / N
@@ -333,14 +328,13 @@ class ExperimentVisualizer:
         eigvals_3d_sqrt = np.sqrt(eigvals_3d).reshape(-1, 1)
         points_3d = eigvecs_3d @ np.diag(eigvals_3d_sqrt.flatten())
         return points_3d
-
     def find_min(a):
         rows, cols = np.nonzero(a)
         min_row, max_row = rows.min(), rows.max()
         min_col, max_col = cols.min(), cols.max()
         non_zero_submatrix = a[min_row:max_row + 1, min_col:max_col + 1]
         return non_zero_submatrix
-
+     
     def reflect_across_plane(array, array2, plane='xy'):
         planes = ["nn", 'xy', 'xz', 'yz', 'xxy', 'xzz', 'yzz', 'all']
         sum = 10e10
@@ -377,11 +371,11 @@ class ExperimentVisualizer:
                 sum = abs(reflected_array - array2).sum()
                 reflected_array_final = reflected_array
             return reflected_array_final
-
-    def cut_submatrix(array, N):
-        non_zero_submatrix = array[0:N, 0:N]
+    """
+    def cut_submatrix(array, n):
+        non_zero_submatrix = array[0:n, 0:n]
         return non_zero_submatrix
-
+    """
     def visualization_3d(self):
         points_of_interests = [41, 23, 22, 80, 118, 28]
         for interest in points_of_interests:
@@ -399,6 +393,8 @@ class ExperimentVisualizer:
                              y_lim=y_lim, z_lim=z_lim)
             print("INTEREST NUMBER", interest)
             print("3D Points shape:", points_3d.shape)
+    """
+
 
 if __name__ == '__main__':
     experiment_name = "experiments/128_VAE_wider_encoder_nz_256_symmetric_black"

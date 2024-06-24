@@ -151,10 +151,8 @@ if __name__ == '__main__':
             model_save_path = os.path.join(CONFIG['model_path'], 'best_model.pth')
             torch.save(model, model_save_path)
             print(f"Best model saved with Validation MAE: {best_val_mae:.8f}")
-
-
         writer.writerow([epoch, train_loss, val_loss, train_mae,
-                         train_rmse,val_mae, val_mae_symmetric, val_rmse, val_rmse_symmetric])
+                         train_rmse, val_mae, val_mae_symmetric, val_rmse, val_rmse_symmetric])
     file.close()
 
     draw_the_stat(log_file, CONFIG)

@@ -160,6 +160,5 @@ def show_forward(ddpm, loader, device):
         show_images(imgs, "Original images")
         for percent in [0.25, 0.5, 0.75, 1]:
             show_images(ddpm(imgs.to(device), [int(percent * ddpm.n_steps) - 1 for _ in range(len(imgs))]),
-                f"DDPM Noisy images {int(percent * 100)}%"
-            )
+                        f"DDPM Noisy images {int(percent * 100)}%")
         break

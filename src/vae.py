@@ -10,8 +10,8 @@ import math
 import numpy as np
 import random
 
-class VAE(nn.Module):
 
+class VAE(nn.Module):
     def __init__(self, n_x, n_z, n_c, dropout_rate=0.5):
         super(VAE, self).__init__()
         self.n_x = n_x
@@ -25,21 +25,15 @@ class VAE(nn.Module):
 
         self.bn1 = nn.BatchNorm1d(4096)  # Adjusted to match fc1 output size
         self.bn2 = nn.BatchNorm1d(2048)  # Adjusted to match fc2 output size
-
         self.dropout1 = nn.Dropout(dropout_rate)
         self.dropout2 = nn.Dropout(dropout_rate)
-
-
         self.fc3 = nn.Linear(n_z + n_c, 2048)  # Doubled from 1024 to 2048
         self.fc4 = nn.Linear(2048, 4096)  # Doubled from 2048 to 4096
         self.fc5 = nn.Linear(4096, n_x)  # Output size stays because it's determined by n_x
-
         self.bn3 = nn.BatchNorm1d(2048)  # Adjusted to match fc3 output size
         self.bn4 = nn.BatchNorm1d(4096)  # Adjusted to match fc4 output size
-
         self.dropout3 = nn.Dropout(dropout_rate)
         self.dropout4 = nn.Dropout(dropout_rate)
-
 
     def encoder(self, x, c):
         x = torch.cat((x, c), dim=1)
@@ -69,8 +63,8 @@ class VAE(nn.Module):
         images_2d = images.view(batch_size, image_size, image_size)
         symmetric_images = torch.empty_like(images_2d)
         for i in range(batch_size):
-            A = images_2d[i]
-            symmetric_images[i] = (A.transpose(0, 1) + A) / 2.0
+            a = images_2d[i]
+            symmetric_images[i] = (a.transpose(0, 1) + a) / 2.0
         symmetric_images_flattened = symmetric_images.view(batch_size, -1)
         return symmetric_images_flattened
 
@@ -85,7 +79,7 @@ class VAE(nn.Module):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-class Loss():
+class Loss:
 
     @staticmethod
     def perceptual_loss(model_features, y_true_flat, y_pred_flat, y_true_vgg, y_pred_vgg, mu, log_sigma):
@@ -109,7 +103,6 @@ class Loss():
     """
     @staticmethod
     def beta_vae_loss(y_true, y_pred, mu, log_sigma, beta):
-        #recon = F.mse_loss(y_pred, y_true, reduction='sum')
         recon = F.l1_loss(y_pred, y_true, reduction='sum')
         kl = -0.5 * torch.sum(1 + log_sigma - mu.pow(2) - log_sigma.exp())
         return recon + beta*kl
@@ -118,7 +111,7 @@ class Loss():
     def mae_sum(x, y_true, mask, scaling):
         x_masked = x * mask
         y_true_masked = y_true * mask
-        error=0
+        error = 0
         for i in range(x_masked.size()[0]):
             x_mask_single = x_masked[i]
             true_single = y_true_masked[i]
@@ -143,15 +136,16 @@ class Loss():
             # Accumulate the scaled RMSE
             error += rmse * scaling
         return error
+
     @staticmethod
     def mae(x, y_true, mask, scaling):
-        x_masked =  x * mask
+        x_masked = x * mask
         y_true_masked = y_true * mask
         mae = (torch.abs(x_masked - y_true_masked).sum() / mask.sum()) * scaling
         return mae
 
 
-class Equalizer():
+class Equalizer:
 
     @staticmethod
     def equalize(images):
@@ -172,13 +166,9 @@ class Equalizer():
         return images_2d
 
     @staticmethod
-    def equalize_the_matrix(pred_matrix, number_of_iterations,verbose_number,  eps):
+    def equalize_the_matrix(pred_matrix, number_of_iterations, verbose_number,  eps):
         L = pred_matrix.shape[0]
-        pred_last = pred_matrix.clone()
         for i in range(number_of_iterations):
-            if i % verbose_number == 0:
-                diff = torch.abs(pred_last - pred_matrix).sum()
-                pred_last = pred_matrix.clone()
             j1 = random.randint(0, L - 1)
             j2 = random.randint(0, L - 1)
             j3 = random.randint(0, L - 1)
@@ -196,9 +186,10 @@ class Equalizer():
             a = a - gamma * eps * (a - (b + c))
             b = b + gamma * eps / 2.0 * (a - (b + c))
             c = c + gamma * eps / 2.0 * (a - (b + c))
-        return (a, b, c)
+        return a, b, c
 
-class VAE_Utils():
+
+class VAE_Utils:
 
     @staticmethod
     def save_images(pred_images, true_images, title_texts, image_size, filesave):
@@ -253,4 +244,4 @@ class CustomDataset(Dataset):
         if self.transform:
             image = cv2.resize(image, (64, 64))
             image = image / 255.0
-        return (image, 0.0)
+        return image, 0.0

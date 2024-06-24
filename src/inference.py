@@ -1,7 +1,6 @@
 from preprocessing.preprocessing import RNADataset, train_val_test_split
-from vae import VAE, Loss
+from vae import Loss
 from utils.visualization import ExperimentVisualizer
-
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -13,9 +12,8 @@ from preprocessing.dataset import InitialDataset, run_data
 import random
 
 
-
 class InferencePipeline:
-    def __init__(self, config , test_loader):
+    def __init__(self, config, test_loader):
         self.config = config
         self.model = self.load_model()
         self.test_loader = test_loader
@@ -72,7 +70,7 @@ class InferencePipeline:
                 pdb_arr.append(pdb)
                 seq_arr.append(cond.cpu().numpy())
                 n_images_sum += n_images
-                time1= time.time()
+                time1 = time.time()
                 time_arr.append(time1-time0)
                 batch_five_pred_coords = []
 
@@ -85,7 +83,7 @@ class InferencePipeline:
                 batch_five_pred_coords = np.transpose(batch_five_pred_coords, (1, 0, 2))
                 five_pred_coords.append(batch_five_pred_coords)
 
-        print("The average time for calculation for one image ", np.array(time_arr).mean() )
+        print("The average time for calculation for one image ", np.array(time_arr).mean())
         self.save_results(true_coords, pred_coords, seq_arr, five_pred_coords, test_mae_pure, test_mae_symmetric,
                           test_rmse_pure, test_rmse_symmetric, n_images_sum, pdb_arr)
 
@@ -111,7 +109,7 @@ class InferencePipeline:
         return mean_of_avg_cv_ratios, std_of_avg_cv_ratios
 
     def save_results(self, true_coords, pred_coords, seq_arr, five_pred_coords, test_mae_pure, test_mae_symmetric,
-                     test_rmse_pure, test_rmse_symmetric,n_images_sum, pdb_arr):
+                     test_rmse_pure, test_rmse_symmetric, n_images_sum, pdb_arr):
 
         true_coords = np.concatenate(true_coords, axis=0)
         pred_coords = np.concatenate(pred_coords, axis=0)
@@ -126,15 +124,13 @@ class InferencePipeline:
         test_rmse_symmetric /= n_images_sum
 
         mean, std = self.calculate_errors(true_coords, five_pred_coords)
+        print("Statistics regarding the results:")
         print("Mean CV", mean)
         print("Std CV", std)
         print("TEST MAE PURE", test_mae_pure)
         print("TEST MAE SYMMETRIC", test_mae_symmetric)
         print("TEST RMSE PURE", test_rmse_pure)
         print("TEST RMSE SYMMETRIC", test_rmse_symmetric)
-
-
-
         filepath = os.path.join(self.config['test_calcs'], "test_results.txt")
         with open(filepath, 'w') as file:
             file.write(f"TEST MAE PURE {test_mae_pure}\n")
@@ -156,19 +152,17 @@ class InferencePipeline:
         self.visualize_results()
 
     def visualize_results(self):
-        visualizer = ExperimentVisualizer(self.config['exp_path'])
+        visualizer = ExperimentVisualizer(self.config['experiment_path'])
         visualizer.visualize_structure()
         visualizer.visualize_five()
 
-if __name__ == '__main__':
-    with open('src/config/config.json','r')as f:
-        config_train = json.load(f)
 
+if __name__ == '__main__':
+    with open('src/config/config.json', 'r')as f:
+        config_train = json.load(f)
     with open('src/config/config_inference.json', 'r') as f:
         config_test = json.load(f)
-
-    CONFIG = {**config_train, **config_test} # rewrite on top the test configuration #TODO : Make more elegant
-    print(CONFIG)
+    CONFIG = {**config_train,  **config_test}   # rewrite on top the test configuration #TODO : Make more elegant
     random.seed(CONFIG['SEED'])
     np.random.seed(CONFIG['SEED'])
     torch.manual_seed(CONFIG['SEED'])
@@ -179,15 +173,10 @@ if __name__ == '__main__':
     for folder in list_of_folders:
         if not os.path.exists(folder):
             os.makedirs(folder)
-
     raw_dataset = InitialDataset(CONFIG)
     raw_dataset = run_data(raw_dataset)
-    (_,_, test_dataset) = train_val_test_split(raw_dataset,
-                                                                      ratio=[0.0,0.0,1.0],
-                                                                      proportion=1.0)
-
+    (_, _, test_dataset) = train_val_test_split(raw_dataset, ratio=[0.0, 0.0, 1.0], proportion=1.0)
     data_test = RNADataset(test_dataset, CONFIG)
     test_loader = DataLoader(data_test, batch_size=CONFIG['batch_size'], shuffle=False)
-
     pipeline = InferencePipeline(CONFIG, test_loader)
     pipeline.run_inference()

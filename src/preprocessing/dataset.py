@@ -7,23 +7,14 @@ from tqdm import tqdm
 from torch.utils.data import Dataset
 from utils.utils_rna import *
 
+
 def run_data(data: Dataset):
     data.drop_duplications()
     data.filter_h2o()
     data.filter_proteins()
-
-    # continue preprocessing
     data.filter_ions()
     data.drop_empty_sequences()
-
-
-    # leave only valid sequences
     data.filter_nonvalid_rna()
-    # data.save_csv(valid_csv_path)
-
-    #data.calculate_angles()
-    #data.calculate_center_of_mass()
-
     data.calculate_backbones()
     data.calculate_dist_matrix('backbone')
     return data
@@ -47,8 +38,6 @@ class Dataloader:
         self.max_length = conf['max_length']
         self.parser = PDBParser()
         self.df = self.from_pdb()
-        #log_param('min length', conf.min_length)
-        #log_param('max length', conf.max_length)
 
     def save_csv(self, path):
         joined_seq = []
@@ -181,7 +170,6 @@ class Dataloader:
             coords.append(d[pdb_id][chain])
         self.df['angles'] = coords
         self.df.dropna(subset=['angles'], inplace=True)
-        #print(len(self.df))
 
     def chain_angles(self, pdb_id):
         path = f'{os.path.join(self.pdb_folder_path, pdb_id)}.ent'
@@ -238,7 +226,6 @@ class Dataloader:
             coords.append(d[pdb_id][chain])
         self.df['center_of_mass'] = coords
         self.df.dropna(subset=['center_of_mass'], inplace=True)
-        #print(len(self.df))
 
     def calculate_dist_matrix(self, type):
         dist_matrices_list = []
@@ -283,7 +270,6 @@ class Dataloader:
             coords.append(d[pdb_id][chain])
         self.df['backbones'] = coords
         self.df.dropna(subset=['backbones'], inplace=True)
-        #print(len(self.df))
 
 
 class InitialDataset:
@@ -303,8 +289,6 @@ class InitialDataset:
         self.max_length = conf['max_length']
         self.parser = PDBParser()
         self.df = self.from_pdb()
-        #log_param('min length', conf.min_length)
-        #log_param('max length', conf.max_length)
 
     def save_csv(self, path):
         joined_seq = []
@@ -437,7 +421,6 @@ class InitialDataset:
             coords.append(d[pdb_id][chain])
         self.df['angles'] = coords
         self.df.dropna(subset=['angles'], inplace=True)
-        #print(len(self.df))
 
     def chain_angles(self, pdb_id):
         path = f'{os.path.join(self.pdb_folder_path, pdb_id)}.ent'
@@ -461,7 +444,6 @@ class InitialDataset:
             (ss, mfe) = RNA.fold(''.join(seq))
             # print(ss)
             sss.append(ss)
-        a = 1
         self.df['secondary'] = sss
 
     def center_of_mass(self, pdb_id):
@@ -494,7 +476,6 @@ class InitialDataset:
             coords.append(d[pdb_id][chain])
         self.df['center_of_mass'] = coords
         self.df.dropna(subset=['center_of_mass'], inplace=True)
-        #print(len(self.df))
 
     def calculate_dist_matrix(self, type):
         dist_matrices_list = []
@@ -539,5 +520,3 @@ class InitialDataset:
             coords.append(d[pdb_id][chain])
         self.df['backbones'] = coords
         self.df.dropna(subset=['backbones'], inplace=True)
-        #print(len(self.df))
-

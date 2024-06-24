@@ -5,13 +5,17 @@ import numpy as np
 import copy
 
 
-def create_distance_matrix(pos_matrix, padding_value=0.0, max_length =None):
+def create_distance_matrix(pos_matrix, padding_value=0.0, max_length=None):
     dist_matr_list = []
     mask_list = []
     for i in range(len(pos_matrix)):
         dist_matr = distance_matrix(pos_matrix[i], pos_matrix[i])
         length = len(pos_matrix[i])
-        new_dist_matr = np.pad(dist_matr, [(0, max_length - length), (0, max_length - length)], mode='constant', constant_values=0.0)
+        new_dist_matr = np.pad(dist_matr,
+                               [(0, max_length - length),
+                                (0, max_length - length)],
+                               mode='constant',
+                               constant_values=0.0)
         dist_matr_list.append(new_dist_matr)
         mask = np.zeros((max_length, max_length))
         mask[:length, :length] = 1.0
@@ -153,8 +157,9 @@ def add_padding_value(listy, value, max_length=None):
     return pre_tensor
 
 
+"""
 def single_chain_angles(chain: Chain.Chain) -> np.ndarray:
-    """
+    
     Calculate angles for a single chain of residues.
 
     Args:
@@ -162,7 +167,7 @@ def single_chain_angles(chain: Chain.Chain) -> np.ndarray:
 
     Returns:
         A numpy array of angles for the given chain.
-    """
+    
     angles = []
     residues = []
     for i in list(chain.get_residues()):
@@ -184,6 +189,7 @@ def single_chain_angles(chain: Chain.Chain) -> np.ndarray:
         angles.append(ang)
 
     return np.array(angles)
+"""
 
 
 def torsion_angles(previous_atom, current_atom, next_atom):

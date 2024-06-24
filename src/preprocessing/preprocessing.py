@@ -4,6 +4,7 @@ import torch
 from PIL import Image
 from utils.visualization import ExperimentVisualizer
 
+
 def create_positions(seq_list):
     """Generate positions for non-zero sequences.
 
@@ -167,11 +168,14 @@ class RNADataset:
         self.mask_encoder_list = torch.Tensor(mask_encoder).type(torch.bool)
         self.pdb_indexes = self.data['index']
         # Log max and min values of the distance matrix
-        print("MAX", np.array(distance_matrix).max())
-        print("MIN", np.array(distance_matrix).min())
+        print("Statistics, maximum value:", np.max(np.array(distance_matrix)))
+        print("Statistics, minimum_value:", np.min(np.array(distance_matrix)))
 
         # Create and store distance matrix images
-        self.torch_images = torch.Tensor(self.create_distance_images(distance_matrix, mask_list, (0.0, 100.0), save_images))
+        self.torch_images = torch.Tensor(self.create_distance_images(distance_matrix,
+                                                                     mask_list,
+                                                                     (0.0, 100.0),
+                                                                     save_images))
 
     def __len__(self):
         """Return the total number of items in the dataset."""
@@ -208,7 +212,7 @@ class RNADataset:
             distance_matrix: A list of 2D arrays representing distance matrices.
             mask_list: A list of masks corresponding to the distance matrices.
             edges: A tuple containing minimum and maximum values for normalization.
-
+            save_images :Whether images are saved
         Returns:
             A list of 2D arrays representing the grayscale images.
         """
@@ -222,7 +226,8 @@ class RNADataset:
             normalized_matrix[mask == 0.0] = 0.0  # Apply mask
             grayscale_image = (normalized_matrix * 255).astype(np.uint8)
             if save_images:
-                ExperimentVisualizer.visualize_image_grey(grayscale_image,self.config['image_path'] + "/" + str(i) + ".jpeg")
+                ExperimentVisualizer.visualize_image_grey(grayscale_image,
+                                                          self.config['image_path'] + "/" + str(i) + ".jpeg")
             image = Image.fromarray(grayscale_image)
             images.append(grayscale_image)
         return images

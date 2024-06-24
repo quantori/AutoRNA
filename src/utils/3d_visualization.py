@@ -5,7 +5,8 @@ import os
 from matplotlib.patches import Circle
 from matplotlib.lines import Line2D
 
-def draw_point_cloud(points_3d, points_3d_true, features, output_filename, x_lim=None, y_lim=None, z_lim=None):
+
+def draw_point_cloud(points_3d, points_3d_true, features, output_filename, x_limit=None, y_limit=None, z_limit=None):
     plt.style.use('bmh')
     x = points_3d[:, 0]
     y = points_3d[:, 1]
@@ -17,11 +18,11 @@ def draw_point_cloud(points_3d, points_3d_true, features, output_filename, x_lim
     ax = fig.add_subplot(111, projection='3d')
 
     if x_lim:
-        ax.set_xlim(x_lim)
+        ax.set_xlim(x_limit)
     if y_lim:
-        ax.set_ylim(y_lim)
+        ax.set_ylim(y_limit)
     if z_lim:
-        ax.set_zlim(z_lim)
+        ax.set_zlim(z_limit)
 
     colors = ['black' for _ in range(len(x))]
     for i in range(len(x)):
@@ -43,8 +44,8 @@ def draw_point_cloud(points_3d, points_3d_true, features, output_filename, x_lim
     ax.tick_params(axis='both', which='major', labelsize=8)
 
     for i in range(len(x) - 1):
-        ax.plot([x[i], x[i + 1]], [y[i], y[i + 1]], [z[i], z[i + 1]], color='grey', linestyle='-', alpha = 0.3)
-        ax.plot([x1[i], x1[i + 1]], [y1[i], y1[i + 1]], [z1[i], z1[i + 1]], color='darkred', linestyle='-', alpha = 0.3)
+        ax.plot([x[i], x[i + 1]], [y[i], y[i + 1]], [z[i], z[i + 1]], color='grey', linestyle='-', alpha=0.3)
+        ax.plot([x1[i], x1[i + 1]], [y1[i], y1[i + 1]], [z1[i], z1[i + 1]], color='darkred', linestyle='-', alpha=0.3)
 
     ax.grid(True)
 
@@ -75,30 +76,30 @@ def align_points(set1, set2):
     centroid2 = compute_centroid(set2)
     set1_centered = set1 - centroid1
     set2_centered = set2 - centroid2
-    H = set1_centered.T @ set2_centered
-    U, S, Vt = np.linalg.svd(H)
-    R = Vt.T @ U.T
-    if np.linalg.det(R) < 0:
-        Vt[-1, :] *= -1
-        R = Vt.T @ U.T
-    t = centroid2 - R @ centroid1
-    aligned_set1 = (R @ set1.T).T + t
+    h = set1_centered.T @ set2_centered
+    u, s, vt = np.linalg.svd(h)
+    r = vt.T @ u.T
+    if np.linalg.det(r) < 0:
+        vt[-1, :] *= -1
+        r = vt.T @ u.T
+    t = centroid2 - r @ centroid1
+    aligned_set1 = (r @ set1.T).T + t
     return aligned_set1
 
 
 def get_global_limits(points_3d_list):
     all_points = np.concatenate(points_3d_list, axis=0)
-    x_lim = (all_points[:, 0].min(), all_points[:, 0].max())
-    y_lim = (all_points[:, 1].min(), all_points[:, 1].max())
-    z_lim = (all_points[:, 2].min(), all_points[:, 2].max())
-    return x_lim, y_lim, z_lim
+    x_limit = (all_points[:, 0].min(), all_points[:, 0].max())
+    y_limit = (all_points[:, 1].min(), all_points[:, 1].max())
+    z_limit = (all_points[:, 2].min(), all_points[:, 2].max())
+    return x_limit, y_limit, z_limit
 
 
 def distance_geometry(non_zero_submatrix):
-    N = non_zero_submatrix.shape[0]
-    J = np.eye(N) - np.ones((N, N)) / N
-    B = -0.5 * J @ (non_zero_submatrix ** 2) @ J
-    eigvals, eigvecs = np.linalg.eigh(B)
+    n = non_zero_submatrix.shape[0]
+    j = np.eye(n) - np.ones((n, n)) / n
+    b = -0.5 * j @ (non_zero_submatrix ** 2) @ j
+    eigvals, eigvecs = np.linalg.eigh(b)
     idx = eigvals.argsort()[::-1]
     eigvals = eigvals[idx]
     eigvecs = eigvecs[:, idx]
@@ -117,7 +118,7 @@ def find_min(a):
     return non_zero_submatrix
 
 
-def reflect_across_plane(array, array2, plane='xy'):
+def reflect_across_plane(array, array2):
     planes = ["nn", 'xy', 'xz', 'yz', 'xxy', 'xzz', 'yzz', 'all']
     sum = 10e10
     for plane in planes:
@@ -149,16 +150,15 @@ def reflect_across_plane(array, array2, plane='xy'):
         else:
             raise ValueError("Invalid plane specified. Use 'xy', 'xz', or 'yz'.")
         reflected_array = align_points(reflected_array, array2)
+        reflected_array_final = None
         if abs(reflected_array - array2).sum() < sum:
-            sum = abs(reflected_array - array2).sum()
             reflected_array_final = reflected_array
         return reflected_array_final
 
 
-def cut_submatrix(array, N):
-    non_zero_submatrix = array[0:N, 0:N]
-    return non_zero_submatrix
-
+def cut_submatrix(array, n):
+    non_zero_matrix = array[0:n, 0:n]
+    return non_zero_matrix
 
 
 if __name__ == "__main__":
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     seqs = pickle.load(ff)
     ff.close()
     folder = "src/utils/viz_images"
-    points_of_interests = [40,41,23,22,80,108,106,118,28]
+    points_of_interests = [40, 41, 23, 22, 80, 108, 106, 118, 28]
     for interest in points_of_interests:
         seq = seqs[interest].reshape(64, 4)
         array = pred[interest].reshape(64, 64)
@@ -191,7 +191,13 @@ if __name__ == "__main__":
         points_3d_true = distance_geometry(non_zero_submatrix_true)
         points_3d_true = reflect_across_plane(points_3d_true, points_3d)
         x_lim, y_lim, z_lim = get_global_limits([points_3d, points_3d_true])
-        draw_point_cloud(points_3d, points_3d_true, seq, os.path.join(folder, str(interest) + "pred.png"), x_lim=x_lim,
-                         y_lim=y_lim, z_lim=z_lim)
+        draw_point_cloud(points_3d,
+                         points_3d_true,
+                         seq,
+                         os.path.join(folder,
+                                      str(interest) + "pred.png"),
+                         x_limit=x_lim,
+                         y_limit=y_lim,
+                         z_limit=z_lim)
         print("INTEREST NUMBER", interest)
         print("3D Points shape:", points_3d.shape)
