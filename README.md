@@ -20,17 +20,17 @@ pip install -r requirements.txt
 ```
 ## Usage
 
-1. **Training**: 
+**Training**: 
 
-Use the configuration file `src/config/config.json` and run `src/pipeline.py` for training. The device is automatically determined. If GPU is available, the GPU is used for training. Otherwise, CPU is used.
+Use and change the configuration file `src/config/config.json` and run `src/pipeline.py` for training. The device is automatically determined. If GPU is available, the GPU is used for training. Otherwise, CPU is used.
 
 ```bash 
 python src/pipeline.py
 ```
 
-2. **Inference**: 
+**Inference**: 
 
-Use the configuration file `src/config/config_inference.json` and run `src/inference.py` for inference.
+Use and change the configuration file `src/config/config_inference.json` and run `src/inference.py` for inference.
 
 
 ```bash 
@@ -39,6 +39,7 @@ python src/inference.py
 
 ## Configuration
 The configuration file config.json is essential for both training and inference processes. It includes parameters such as batch size, number of epochs, data specifications, model architecture details, paths, and more. You use only the model_path, output_path,  pdb_path, and SEED for the inference pipeline. 
+
 ### Configuration Parameters for Training
 - **Description**: Description of the experiment.
 - **batch_size**: Batch size for the experiment.
@@ -61,7 +62,6 @@ The configuration file config.json is essential for both training and inference 
 
 ### Configuration Parameters for Inference
 
-
 - **batch_size**: Batch size for the experiment.
 - **SEED**: Random seed for reproducibility.
 - **pdb_folder_path**: Folder where the pdb files are stored.
@@ -83,7 +83,8 @@ The same output is produced for the training and inference pipeline. The structu
    - **config** : the config folder for training and inference pipelines)
    - **preprocessing**: the data preprocessing is happening here
    - **utils** : the utils files
-   
+
+
 ## Output
 
 The same output is produced for the training and inference pipeline. Here is the example of the folders produced:
