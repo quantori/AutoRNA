@@ -102,8 +102,6 @@ The same output is produced for the training and inference pipeline. Here is the
 
 ## Citation
 
-If you use our work, please cite:
-
 Kazanskii, M. A., Uroshlev, L., Zatylkin, F., Pospelova, I., Kantidze, O., & Gankin, Y. (2024). RNAfold: RNA tertiary structure prediction using variational autoencoder. bioRxiv. https://doi.org/10.1101/2024.06.18.599511
 ## Contact Information
 Feel free to contact us at [maxim.kazanskiy@quantori.com](mailto:maxim.kazanskiy@quantori.com).
