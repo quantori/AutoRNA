@@ -12,6 +12,12 @@ git clone https://github.com/quantori/RNAfold.git
 cd RNAfold
 ```
 
+## Install dependencies
+To install the required dependencies, use the requirements.txt file:
+
+```bash
+pip install -r requirements.txt
+```
 ## Usage
 
 1. **Training**: 
