@@ -76,13 +76,8 @@ The same output is produced for the training and inference pipeline. The structu
 
  - **data** : the folders with pdb files(omitted for GitHub due to the size limits)<br/>
  - **experiments**  : the folder with the experiments<br/>
-    - **ExperimentName**<br/>
-      - config: saved config<br/>
-      - images: produced images for test dataset (heatmaps)<br/>
-      - images_comparison: produced images for test dataset for different noise vectors<br/>
-      - model: trained model is stored in the folder <br/>
-      - results: graphical resutls for the loss function (mae)<br/>
-      - test_calcs: the saved pickle files for the visualiation<br/>
+    - **some_experiment_name**<br/>
+ 
  
  - **src** : the source files
    - **config** : the config folder for training and inference pipelines)
