@@ -37,6 +37,12 @@ Use and change the configuration file `src/config/config_inference.json` and run
 python src/inference.py
 ```
 
+## Data
+
+You can download the full dataset of (.ent files) using the following link: https://drive.google.com/file/d/1_uZ9coIGNIVSaW4-W0h4ZQYPE9Bm-Geu/view?usp=drive_link . <br/>
+The size of the archived folder is 1.2GB, the size of unarchived folder is around 5GB. Please copy the folder **rna_data_v1** to **data** folder.
+The folder **rna_data_v1_small** that is stored on GitHub is a small representative subset of the large dataset. The goal of this dataset is to show how the algorithm works. Please note, that running inference script on the rna_data_v1_small will lead to smaller error due to the data leakage (the dataset was formed as a part of the whole dataset before division into train/val/test).
+
 ## Configuration
 The configuration file config.json is essential for both training and inference processes. It includes parameters such as batch size, number of epochs, data specifications, model architecture details, paths, and more. You use only the model_path, output_path,  pdb_path, and SEED for the inference pipeline. 
 
