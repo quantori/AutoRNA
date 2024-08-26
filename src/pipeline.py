@@ -12,6 +12,7 @@ import os
 import random
 import csv
 import json
+from preprocessing.filter_homology import cluster_rna_structures
 
 warnings.filterwarnings("ignore")
 warnings.warn("This is a warning message", UserWarning)
@@ -36,9 +37,15 @@ if __name__ == '__main__':
 
     raw_dataset = InitialDataset(CONFIG)
     raw_dataset = run_data(raw_dataset)
-    (train_dataset, val_dataset, test_dataset) = train_val_test_split(raw_dataset,
+    cluster_folder = "data/clusters"
+    cluster_rna_structures(CONFIG['pdb_folder_path'], cluster_folder)
+    (train_dataset, val_dataset, test_dataset) = train_val_test_split(CONFIG,
+                                                                      raw_dataset,
                                                                       ratio=CONFIG['ratio_arr'],
-                                                                      proportion=CONFIG['proportion'])
+                                                                      proportion=CONFIG['proportion'],
+                                                                      cluster_dir=cluster_folder,
+                                                                      write_partition_to_disc = True,
+                                                                      partition_path = "data/train_val_test_split")
 
     data_train = RNADataset(train_dataset, CONFIG)
     data_val = RNADataset(val_dataset, CONFIG)

@@ -7,8 +7,8 @@ from tqdm import tqdm
 from torch.utils.data import Dataset
 from utils.utils_rna import *
 
-
 def run_data(data: Dataset):
+
     data.drop_duplications()
     data.filter_h2o()
     data.filter_proteins()
