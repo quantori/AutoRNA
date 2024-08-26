@@ -138,20 +138,20 @@ def train_val_test_split(CONFIG,
         A tuple containing training, validation, and test datasets.
     """
     df_clusters = read_clusters_into_df(cluster_dir)
-    print(df_clusters.head())
     dataset.df['file_name'] = dataset.df['index'].astype(str)
     df_clusters['file_name'] = df_clusters['file_name'].astype(str)
 
     dataset.df = dataset.df.merge(df_clusters, on='file_name', how='left')
-    print(dataset.df.head())
     unique_clusters = dataset.df['cluster'].unique()
     np.random.shuffle(unique_clusters)
 
     # Calculate the number of clusters for each split
     num_clusters = len(unique_clusters)
     train_clusters_end = round(num_clusters * ratio[0])
-    val_clusters_end = train_clusters_end + round(num_clusters * ratio[1])
-    print("num_clusters",num_clusters)
+    val_clusters_end = round(num_clusters * ratio[1])
+    print(num_clusters)
+    print(train_clusters_end)
+    print(val_clusters_end)
     # Split clusters
     train_clusters = unique_clusters[:train_clusters_end]
     val_clusters = unique_clusters[train_clusters_end:val_clusters_end]
