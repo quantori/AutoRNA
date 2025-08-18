@@ -91,7 +91,7 @@ class Loss:
         features_y_true = model_features(y_true_vgg.float()).detach()  # Detach so we don't backprop through VGG
         features_y_pred = model_features(y_pred_vgg.float()).detach()  # Detach so we don't backprop through VGG
         perc_loss = F.mse_loss(features_y_pred, features_y_true)
-        total_loss = kl + recon + perc_loss
+        total_loss = kl + recon + perc_loss # + symmetric_loss
         return total_loss
 
     """
@@ -108,6 +108,15 @@ class Loss:
         return recon + beta*kl
 
     @staticmethod
+    def beta_vae_loss_symmetric(y_true, y_pred, mu, log_sigma, beta, original_shape):
+        recon = F.l1_loss(y_pred, y_true, reduction='sum')
+        kl = -0.5 * torch.sum(1 + log_sigma - mu.pow(2) - log_sigma.exp())
+        y_pred = y_pred.view(*original_shape)
+        symmetric_loss = F.mse_loss(y_pred, y_pred.transpose(-1, -2))
+        return recon + beta*kl + symmetric_loss
+
+
+    @staticmethod
     def mae_sum(x, y_true, mask, scaling):
         x_masked = x * mask
         y_true_masked = y_true * mask
@@ -118,6 +127,18 @@ class Loss:
             mask_single = mask[i]
             error += (torch.abs(x_mask_single - true_single).sum() / mask_single.sum()) * scaling
         return error
+
+    def mae_arr(x, y_true, mask, scaling):
+        x_masked = x * mask
+        y_true_masked = y_true * mask
+        errors =[]
+        for i in range(x_masked.size()[0]):
+            x_mask_single = x_masked[i]
+            true_single = y_true_masked[i]
+            mask_single = mask[i]
+            error = (torch.abs(x_mask_single - true_single).sum() / mask_single.sum()) * scaling
+            errors.append(error.item())
+        return errors
 
     @staticmethod
     def rmse_sum(x, y_true, mask, scaling):
@@ -136,13 +157,36 @@ class Loss:
             # Accumulate the scaled RMSE
             error += rmse * scaling
         return error
-
+    def rmse_arr(x, y_true, mask, scaling):
+        x_masked = x * mask
+        y_true_masked = y_true * mask
+        errors= []
+        for i in range(x_masked.size()[0]):
+            x_mask_single = x_masked[i]
+            true_single = y_true_masked[i]
+            mask_single = mask[i]
+            # Calculate squared error
+            squared_error = (x_mask_single - true_single) ** 2
+            # Calculate mean of squared error over the masked area, then take the square root
+            mse = squared_error.sum() / mask_single.sum()
+            rmse = torch.sqrt(mse)
+            # Accumulate the scaled RMSE
+            errors.append((rmse * scaling).item())
+        return errors
     @staticmethod
     def mae(x, y_true, mask, scaling):
         x_masked = x * mask
         y_true_masked = y_true * mask
         mae = (torch.abs(x_masked - y_true_masked).sum() / mask.sum()) * scaling
         return mae
+
+    def calculate_mean_std(arr_analyze):
+        try:
+            np_arr = np.concatenate(arr_analyze)
+        except:
+            np_arr = arr_analyze
+        return np.mean(np_arr), np.std(np_arr)
+
 
 
 class Equalizer:

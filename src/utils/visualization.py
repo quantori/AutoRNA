@@ -137,10 +137,8 @@ class ExperimentVisualizer:
         saves the plots as images.
         """
 
-        print("Visualizing the structure")
+        print("Visualizing the 3d structures... This could take a while. ")
         for i in range(self.pred_arr.shape[0]):
-            sequences = self.sequences_arr[i, :]
-            img_size = int(math.sqrt(self.pred_arr.shape[1]))
             pred = self.pred_arr[i, :]
             true = self.true_arr[i, :]
             sequences = self.sequences_arr[i, :]
@@ -169,7 +167,7 @@ class ExperimentVisualizer:
             plt.close(fig)
 
     def visualize_five(self):
-        print("Visualizing the structure (generating conformations with different noise). This could take a while.")
+        print("Visualizing the heatmaps (generating conformations with different noise)... This could take a while.")
         for i in range(self.true_arr.shape[0]):
             sequences = self.sequences_arr[i, :]
             img_size = int(math.sqrt(self.pred_arr.shape[1]))
@@ -180,7 +178,6 @@ class ExperimentVisualizer:
             true = self.true_arr[i, :]
             five = self.five_arr[i, :, :]
 
-            sequences = self.sequences_arr[i, :]
             img_size = int(math.sqrt(self.true_arr.shape[1]))
             true_reshaped = true.reshape(img_size, img_size)
 
@@ -230,170 +227,9 @@ class ExperimentVisualizer:
             # Only draw color bar for the last subplot, shared across all
             cbar = plt.colorbar(ax0.get_images()[0], cax=cbar_ax)
             cbar.ax.tick_params(labelsize=20)  # Set the colorbar tick label size
-            #plt.constrained_layout(rect=[0, 0, 0.9, 1])  # Adjust layout to make space for colorbar
+            # plt.constrained_layout(rect=[0, 0, 0.9, 1])  # Adjust layout to make space for colorbar
             fig.savefig(os.path.join(self.folder_to_store, f'heatmap_generation_{i}.png'))
             plt.close(fig)
-    """
-    def draw_point_cloud(points_3d, points_3d_true, features, output_filename, x_lim=None, y_lim=None, z_lim=None):
-        plt.style.use('bmh')
-        x = points_3d[:, 0]
-        y = points_3d[:, 1]
-        z = points_3d[:, 2]
-        x1 = points_3d_true[:, 0]
-        y1 = points_3d_true[:, 1]
-        z1 = points_3d_true[:, 2]
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-
-        if x_lim:
-            ax.set_xlim(x_lim)
-        if y_lim:
-            ax.set_ylim(y_lim)
-        if z_lim:
-            ax.set_zlim(z_lim)
-
-        colors = ['black' for _ in range(len(x))]
-        for i in range(len(x)):
-            if features[i][0] > 0.0:  # A
-                colors[i] = 'red'
-            if features[i][1] > 0.0:  # C
-                colors[i] = 'green'
-            if features[i][2] > 0.0:  # G
-                colors[i] = 'steelblue'
-            if features[i][3] > 0.0:  # U
-                colors[i] = 'orange'
-
-        ax.scatter(x, y, z, c=colors, s=40, edgecolors='white')
-        ax.scatter(x1, y1, z1, c=colors, s=40, edgecolors='white')
-        ax.set_facecolor('white')
-        ax.set_xlabel('X', fontsize=8)
-        ax.set_ylabel('Y', fontsize=8)
-        ax.set_zlabel('Z', fontsize=8)
-        ax.tick_params(axis='both', which='major', labelsize=8)
-
-        for i in range(len(x) - 1):
-            ax.plot([x[i], x[i + 1]], [y[i], y[i + 1]], [z[i], z[i + 1]], color='grey', linestyle='-', alpha=0.3)
-            ax.plot([x1[i], x1[i + 1]], [y1[i], y1[i + 1]], [z1[i], z1[i + 1]], color='darkred', linestyle='-',
-                    alpha=0.3)
-
-        ax.grid(True)
-
-        legend_elements = [
-            Circle((0, 0), 0.1, facecolor='red', edgecolor='red', linewidth=0, label='A'),
-            Circle((0, 0), 0.1, facecolor='green', edgecolor='green', linewidth=0, label='C'),
-            Circle((0, 0), 0.1, facecolor='steelblue', edgecolor='steelblue', linewidth=0, label='G'),
-            Circle((0, 0), 0.1, facecolor='orange', edgecolor='orange', linewidth=0, label='U')
-        ]
-        ax.legend(handles=legend_elements, loc='upper right', fontsize=10, frameon=False)
-
-        plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
-        plt.savefig(output_filename, dpi=400)
-    
-    def compute_centroid(points):
-        return np.mean(points, axis=0)
-    
-    def align_points(set1, set2):
-        set1, set2 = np.asarray(set1), np.asarray(set2)
-        centroid1 = compute_centroid(set1)
-        centroid2 = compute_centroid(set2)
-        set1_centered = set1 - centroid1
-        set2_centered = set2 - centroid2
-        H = set1_centered.T @ set2_centered
-        U, S, Vt = np.linalg.svd(H)
-        R = Vt.T @ U.T
-        if np.linalg.det(R) < 0:
-            Vt[-1, :] *= -1
-            R = Vt.T @ U.T
-        t = centroid2 - R @ centroid1
-        aligned_set1 = (R @ set1.T).T + t
-        return aligned_set1
-    
-    def get_global_limits(points_3d_list):
-        all_points = np.concatenate(points_3d_list, axis=0)
-        x_lim = (all_points[:, 0].min(), all_points[:, 0].max())
-        y_lim = (all_points[:, 1].min(), all_points[:, 1].max())
-        z_lim = (all_points[:, 2].min(), all_points[:, 2].max())
-        return x_lim, y_lim, z_lim
-    
-    def distance_geometry(non_zero_submatrix):
-        N = non_zero_submatrix.shape[0]
-        J = np.eye(N) - np.ones((N, N)) / N
-        B = -0.5 * J @ (non_zero_submatrix ** 2) @ J
-        eigvals, eigvecs = np.linalg.eigh(B)
-        idx = eigvals.argsort()[::-1]
-        eigvals = eigvals[idx]
-        eigvecs = eigvecs[:, idx]
-        eigvals_3d = eigvals[:3]
-        eigvecs_3d = eigvecs[:, :3]
-        eigvals_3d_sqrt = np.sqrt(eigvals_3d).reshape(-1, 1)
-        points_3d = eigvecs_3d @ np.diag(eigvals_3d_sqrt.flatten())
-        return points_3d
-    def find_min(a):
-        rows, cols = np.nonzero(a)
-        min_row, max_row = rows.min(), rows.max()
-        min_col, max_col = cols.min(), cols.max()
-        non_zero_submatrix = a[min_row:max_row + 1, min_col:max_col + 1]
-        return non_zero_submatrix
-     
-    def reflect_across_plane(array, array2, plane='xy'):
-        planes = ["nn", 'xy', 'xz', 'yz', 'xxy', 'xzz', 'yzz', 'all']
-        sum = 10e10
-        for plane in planes:
-            print(plane)
-            if array.ndim != 2 or array.shape[1] != 3:
-                raise ValueError("Array must be a Nx3 array where N is the number of points and each row is [x, y, z].")
-            reflected_array = np.copy(array)
-            if plane == 'nn':
-                pass
-            elif plane == 'xy':
-                reflected_array[:, 2] = -reflected_array[:, 2]
-            elif plane == 'xz':
-                reflected_array[:, 1] = -reflected_array[:, 1]
-            elif plane == 'yz':
-                reflected_array[:, 0] = -reflected_array[:, 0]
-            elif plane == 'xxy':
-                reflected_array[:, 2] = -reflected_array[:, 2]
-                reflected_array[:, 1] = -reflected_array[:, 1]
-            elif plane == 'xzz':
-                reflected_array[:, 1] = -reflected_array[:, 1]
-                reflected_array[:, 0] = -reflected_array[:, 0]
-            elif plane == 'yzz':
-                reflected_array[:, 2] = -reflected_array[:, 2]
-                reflected_array[:, 0] = -reflected_array[:, 0]
-            elif plane == 'all':
-                reflected_array[:, 2] = -reflected_array[:, 2]
-                reflected_array[:, 1] = -reflected_array[:, 1]
-                reflected_array[:, 0] = -reflected_array[:, 0]
-            else:
-                raise ValueError("Invalid plane specified. Use 'xy', 'xz', or 'yz'.")
-            reflected_array = align_points(reflected_array, array2)
-            if abs(reflected_array - array2).sum() < sum:
-                sum = abs(reflected_array - array2).sum()
-                reflected_array_final = reflected_array
-            return reflected_array_final
-    """
-    def cut_submatrix(array, n):
-        non_zero_submatrix = array[0:n, 0:n]
-        return non_zero_submatrix
-    """
-    def visualization_3d(self):
-        points_of_interests = [41, 23, 22, 80, 118, 28]
-        for interest in points_of_interests:
-            seq = seqs[interest].reshape(64, 4)
-            array = pred[interest].reshape(64, 64)
-            array_true = true[interest].reshape(64, 64)
-            non_zero_submatrix_true = find_min(array_true)
-            non_zero_submatrix = cut_submatrix(array, non_zero_submatrix_true.shape[0])
-            points_3d = distance_geometry(non_zero_submatrix)
-            points_3d_true = distance_geometry(non_zero_submatrix_true)
-            points_3d_true = reflect_across_plane(points_3d_true, points_3d)
-            x_lim, y_lim, z_lim = get_global_limits([points_3d, points_3d_true])
-            draw_point_cloud(points_3d, points_3d_true, seq, os.path.join(folder, str(interest) + "pred.png"),
-                             x_lim=x_lim,
-                             y_lim=y_lim, z_lim=z_lim)
-            print("INTEREST NUMBER", interest)
-            print("3D Points shape:", points_3d.shape)
-    """
 
 
 if __name__ == '__main__':

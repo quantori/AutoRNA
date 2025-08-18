@@ -5,6 +5,7 @@ import numpy as np
 import copy
 
 
+"""
 def create_distance_matrix(pos_matrix, padding_value=0.0, max_length=None):
     dist_matr_list = []
     mask_list = []
@@ -21,7 +22,34 @@ def create_distance_matrix(pos_matrix, padding_value=0.0, max_length=None):
         mask[:length, :length] = 1.0
         mask_list.append(mask)
     return dist_matr_list, mask_list
-
+"""
+def create_distance_matrix(pos_matrix, padding_value=0.0, max_length=None):
+    dist_matr_list = []
+    mask_list = []
+    for i in range(len(pos_matrix)):
+        # Reshape flat coordinates array into 2D array of 3D points
+        coords_flat = np.array(pos_matrix[i])
+        # Each point has 3 coordinates (x, y, z)
+        num_points = len(coords_flat) // 3
+        coords_2d = coords_flat.reshape(num_points, 3)
+        
+        # Calculate distance matrix
+        dist_matr = distance_matrix(coords_2d, coords_2d)
+        length = num_points
+        
+        # Pad the distance matrix to max_length
+        new_dist_matr = np.pad(dist_matr,
+                               [(0, max_length - length),
+                                (0, max_length - length)],
+                               mode='constant',
+                               constant_values=0.0)
+        dist_matr_list.append(new_dist_matr)
+        
+        # Create mask
+        mask = np.zeros((max_length, max_length))
+        mask[:length, :length] = 1.0
+        mask_list.append(mask)
+    return dist_matr_list, mask_list
 
 def modify_shift(coords):
     """
@@ -395,7 +423,7 @@ def extract_backbone_coords(residue):
     coords = []
     atoms = list(residue.get_atoms())
     for atom in atoms:
-        if atom.get_name() in ["P", "O5'", "O3'", "C5'", "C4'", "C3'"]:
+        if atom.get_name() in ["P", "C4'", "C3'", "C1'", "N1"]: #["P", "O5'", "O3'", "O4'", "O2'", "C5'", "C4'", "C3'", "N9"]:
             coords.append(atom.get_coord())
     return coords
 

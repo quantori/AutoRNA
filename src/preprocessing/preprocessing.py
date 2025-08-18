@@ -3,6 +3,9 @@ from utils.utils_rna import add_padding_list, add_padding_value, create_distance
 import torch
 from PIL import Image
 from utils.visualization import ExperimentVisualizer
+import os
+import pandas as pd
+import shutil
 
 
 def create_positions(seq_list):
@@ -25,6 +28,14 @@ def create_positions(seq_list):
                 pos_seq.append(0)
         full_pos_list.append(pos_seq)
     return full_pos_list
+
+
+def manage_train_val_test_folder(main_folder):
+    if os.path.exists(main_folder):
+        shutil.rmtree(main_folder)
+    os.makedirs(os.path.join(main_folder, 'train'))
+    os.makedirs(os.path.join(main_folder, 'val'))
+    os.makedirs(os.path.join(main_folder, 'test'))
 
 
 def create_mask_encoder(seq_list):
@@ -68,7 +79,71 @@ def average_deviation_coords(pred, true, mask):
     return summy * 255.0 / 2.0
 
 
-def train_val_test_split(dataset, ratio=[0.7, 0.9, 1.0], proportion=1.0):
+def cluster_folder_split(folders, ratio=[0.7, 0.9, 1.0]):
+    """
+    Split folders containing clusters into training, validation, and test sets based on provided ratios.
+
+    Args:
+        folders: List of folder paths containing the clusters.
+        ratio: A list of three numbers indicating the proportion of train, validation, and test sets.
+
+    Returns:
+        A tuple containing lists of folder paths for training, validation, and test sets.
+    """
+    assert len(ratio) == 3, "Ratio list must contain exactly three elements."
+    assert sum(ratio) == 1.0, "The sum of the ratios must be 1.0."
+    np.random.shuffle(folders)
+    total_folders = len(folders)
+    train_split = int(total_folders * ratio[0])
+    val_split = int(total_folders * ratio[1])
+    train_folders = folders[:train_split]
+    val_folders = folders[train_split:val_split]
+    test_folders = folders[val_split:]
+    print("Number of folders in training, validation, and test sets: ",
+          len(train_folders), len(val_folders), len(test_folders))
+    return train_folders, val_folders, test_folders
+
+
+def read_clusters_into_df(base_dir):
+    data = []
+    for folder in os.listdir(base_dir):
+        folder_path = os.path.join(base_dir, folder)
+        if os.path.isdir(folder_path) and folder.startswith('cluster_'):
+            cluster_number = int(folder.replace('cluster_', ''))
+            for file_name in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, file_name)
+                if os.path.isfile(file_path):
+                    data.append({'file_name': file_name.split(".")[0], 'cluster': cluster_number})
+    df = pd.DataFrame(data)
+    return df
+
+
+def copy_to_partition(source_folder, target_folder, df, idx):
+    count = 0
+    for filename in df.loc[idx, 'file_name']:
+        count += 1
+        pdb_filename = f"{filename}.pdb"
+        ent_filename = f"{filename}.ent"
+        # Try with .pdb first
+        src_path_pdb = os.path.join(source_folder, pdb_filename)
+        src_path_ent = os.path.join(source_folder, ent_filename)
+        if os.path.exists(src_path_pdb):
+            src_path = src_path_pdb
+            new_filename = pdb_filename
+        if os.path.exists(src_path_ent):
+            src_path = src_path_ent
+            new_filename = pdb_filename
+        dest_path = os.path.join(target_folder, new_filename)
+        shutil.copy(src_path, dest_path)
+
+
+def train_val_test_split(CONFIG,
+                         df,
+                         ratio=[0.7, 0.9, 1.0],
+                         proportion=1.0,
+                         cluster_dir='data/clusters',
+                         write_partition_to_disc=True,
+                         partition_path='data/train_val_test_split'):
     """Split the dataset into training, validation, and test sets based on provided ratios.
 
     Args:
@@ -79,32 +154,90 @@ def train_val_test_split(dataset, ratio=[0.7, 0.9, 1.0], proportion=1.0):
     Returns:
         A tuple containing training, validation, and test datasets.
     """
-    pos = dataset.df['backbones']
-    length = len(pos)
-    id_list = np.arange(length)
-    np.random.shuffle(id_list)
-    train_step = round(length * ratio[0] * proportion)
-    val_step = round(length * ratio[1] * proportion)
-    test_step = round(length * ratio[2] * proportion)
+    df_clusters = read_clusters_into_df(cluster_dir)
+    df['file_name'] = df['index'].astype(str)
+    df_clusters['file_name'] = df_clusters['file_name'].astype(str)
+    df = df.merge(df_clusters, on='file_name', how='left')
+    unique_clusters = df['cluster'].unique()
+    np.random.shuffle(unique_clusters)
+    # Calculate the number of clusters for each split
+    num_clusters = len(unique_clusters)
+    train_clusters_end = round(num_clusters * ratio[0])
+    val_clusters_end = round(num_clusters * ratio[1])
+    print(" Number of clusters: ", num_clusters)
+    print(train_clusters_end)
+    # Split clusters
+    train_clusters = unique_clusters[:train_clusters_end]
+    val_clusters = unique_clusters[train_clusters_end:val_clusters_end]
+    test_clusters = unique_clusters[val_clusters_end:]
 
-    train_idx, val_idx, test_idx = id_list[:train_step], id_list[train_step:val_step], id_list[val_step:test_step]
+    print(" Number of train/val/test clusters", len(train_clusters), len(val_clusters), len(test_clusters))
+    # Assign indices based on clusters
+    train_idx = df[df['cluster'].isin(train_clusters)].index
+    val_idx = df[df['cluster'].isin(val_clusters)].index
+    test_idx = df[df['cluster'].isin(test_clusters)].index
 
     print("LENGTH of training, validation, and test datasets: ", len(train_idx), len(val_idx), len(test_idx))
+
+    if write_partition_to_disc:
+        manage_train_val_test_folder(partition_path)
+        copy_to_partition(CONFIG['pdb_folder_path'], os.path.join(partition_path, "train"), df, train_idx)
+        copy_to_partition(CONFIG['pdb_folder_path'], os.path.join(partition_path, "val"), df, val_idx)
+        copy_to_partition(CONFIG['pdb_folder_path'], os.path.join(partition_path, "test"), df, test_idx)
+
     dataset_train, dataset_val, dataset_test = {}, {}, {}
-    dataset_train['coords'] = np.array(dataset.df['backbones'])[train_idx]
-    dataset_train['seq'] = np.array(dataset.df['seq'])[train_idx]
-    dataset_train['index'] = np.array(dataset.df['index'])[train_idx]
-    dataset_val['coords'] = np.array(dataset.df['backbones'])[val_idx]
-    dataset_val['seq'] = np.array(dataset.df['seq'])[val_idx]
-    dataset_val['index'] = np.array(dataset.df['index'])[val_idx]
-    dataset_test['coords'] = np.array(dataset.df['backbones'])[test_idx]
-    dataset_test['seq'] = np.array(dataset.df['seq'])[test_idx]
-    dataset_test['index'] = np.array(dataset.df['index'])[test_idx]
+    dataset_train['coords'] = np.array(df['backbones'])[train_idx]
+    dataset_train['seq'] = np.array(df['seq'])[train_idx]
+    dataset_train['index'] = np.array(df['index'])[train_idx]
+    dataset_val['coords'] = np.array(df['backbones'])[val_idx]
+    dataset_val['seq'] = np.array(df['seq'])[val_idx]
+    dataset_val['index'] = np.array(df['index'])[val_idx]
+    dataset_test['coords'] = np.array(df['backbones'])[test_idx]
+    dataset_test['seq'] = np.array(df['seq'])[test_idx]
+    dataset_test['index'] = np.array(df['index'])[test_idx]
     return dataset_train, dataset_val, dataset_test
 
 
+def preprocess_without_splitting(CONFIG, dataset):
+    """Split the dataset into training, validation, and test sets based on provided ratios.
+
+    Args:
+        CONFIG: the config json
+        dataset: The dataset to be preprocessed.
+
+    Returns:
+       A dictionary of the dataset
+    """
+    unique_mask = dataset.df['index'].duplicated(keep=False)
+    filtered_df = dataset.df[~unique_mask]
+    dataset_new = {}
+    dataset_new['coords'] = np.array(filtered_df['backbones'])
+    dataset_new['seq'] = np.array(filtered_df['seq'])
+    dataset_new['index'] = np.array(filtered_df['index'])
+    return dataset_new
+
+def preprocess_without_splitting_for_df(CONFIG, dataset):
+    """Split the dataset into training, validation, and test sets based on provided ratios.
+
+    Args:
+        CONFIG: the config json
+        dataset: The dataset to be preprocessed.
+
+    Returns:
+       A dictionary of the dataset
+    """
+    unique_mask = dataset['index'].duplicated(keep=False)
+    filtered_df = dataset[~unique_mask]
+    dataset_new = {}
+    dataset_new['coords'] = np.array(filtered_df['backbones'])
+    dataset_new['seq'] = np.array(filtered_df['seq'])
+    dataset_new['index'] = np.array(filtered_df['index'])
+    return dataset_new
+
+
 class RNADataset:
-    """A dataset class for RNA sequences and structures.
+    """A dataset class for RNA seque
+    nces and structures.
 
     This class is responsible for preparing and handling a dataset consisting of RNA sequences,
     their corresponding structural data, and images representing distance matrices. It includes
@@ -124,7 +257,7 @@ class RNADataset:
         coords_stats: A dictionary containing statistics of coordinates for normalization purposes.
     """
 
-    def __init__(self, full_dataset, config, transform=None, save_images=True):
+    def __init__(self, full_dataset, config, save_images=True):
         """Initialize the dataset with the given parameters.
 
         Args:
@@ -132,7 +265,6 @@ class RNADataset:
             config: A dictionary with configuration options, including 'max_length' and 'image_path'.
             transform: An optional callable to be applied on each sample.
         """
-        self.transform = transform
         self.config = config
         self.data = full_dataset
         self.pad_size = config['max_length']

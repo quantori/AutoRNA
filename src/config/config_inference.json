@@ -1,7 +1,9 @@
 {
-    "batch_size": 64,
-    "SEED": 111,
-    "model_path" : "experiments/AE_random_nz_1024_dropout0.5beta1.1/model",
-    "output_path": "experiments/output_inference_new/",
-    "pdb_folder_path": "data/rna_data_v1_small"
+	"batch_size": 16,
+	"SEED": 123,
+	"image_path" : "experiments/exp1/pred_image",
+    "model_path" : "experiments/exp1/model/",
+    "config_train" : "experiments/exp1/config/config.json",
+    "output_path": "experiments/exp1_val",
+    "pdb_folder_path": "experiments/exp1/train_val_test_split/val"
 }
