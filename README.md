@@ -37,9 +37,11 @@ Use and change the configuration file `src/config/config_inference.json` and run
 python src/inference.py
 ```
 
+Weights of models are available in link https://drive.google.com/file/d/1Si9N7BU08Ft_MyLmtfKD4dVLVIxgtmfI/view?usp=sharing
+
 ## Data
 
-You can download the full dataset of (.ent files) using the following link: https://drive.google.com/file/d/1_uZ9coIGNIVSaW4-W0h4ZQYPE9Bm-Geu/view?usp=drive_link . <br/>
+You can download the full dataset of (.ent files) using the following link: https://drive.google.com/file/d/1_uZ9coIGNIVSaW4-W0h4ZQYPE9Bm-Geu/view?usp=drive_link .<br/>
 The size of the archived folder is 1.2GB, the size of unarchived folder is around 5GB. Please copy the folder **rna_data_v1** to **data** folder.
 The folder **rna_data_v1_small** that is stored on GitHub is a small representative subset of the large dataset. The goal of this dataset is to show how the algorithm works. Please note, that running inference script on the rna_data_v1_small will lead to smaller error due to the data leakage (the dataset was formed as a part of the whole dataset before division into train/val/test).
 
