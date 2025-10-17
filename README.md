@@ -1,4 +1,4 @@
-# RNAfold 
+# AutoRNA 
 
 ## Introduction
 This project is a pipeline for predicting tertiary RNA structure using a Variational Autoencoder.
@@ -8,7 +8,7 @@ This project is a pipeline for predicting tertiary RNA structure using a Variati
 Clone repository 
 
 ```bash
-git clone https://github.com/quantori/RNAfold.git
+git clone https://github.com/quantori/AutoRNA.git
 cd RNAfold
 ```
 
