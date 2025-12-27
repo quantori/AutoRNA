@@ -115,7 +115,7 @@ class InferencePipeline:
 
 
 if __name__ == '__main__':
-    with open('../config/config_prediction.json', 'r') as f:
+    with open('config/config_prediction.json', 'r') as f:
         config_test = json.load(f)
     config_base_path = config_test['config_train']
     with open(config_base_path, 'r')as f:
