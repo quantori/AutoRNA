@@ -3,35 +3,57 @@ import numpy as np
 from scipy.linalg import eigh
 import os
 import argparse
+import torch
 
-HOME_DIR = "/home/leo/Research/MaximData/last_src/src/exp/test_calcs/"
+HOME_DIR = "/home/leo/Research/new/AutoRNA/experiments/exp1_val/test_calcs"
 SIZE = 64
 
 def find_distance_submatrix(matrix, threshold=1.0):
     """
     Find the submatrix containing distances (values > threshold).
     Returns the submatrix and the indices of rows/cols that contain it.
+    Works with both numpy arrays and torch tensors.
     """
-    # Find all positions where values > threshold
+    # --- PyTorch path ---
+    try:
+        if isinstance(matrix, torch.Tensor):
+            mask = matrix > threshold
+
+            rows_with_distances = torch.any(mask, dim=1)
+            cols_with_distances = torch.any(mask, dim=0)
+
+            row_indices = torch.where(rows_with_distances)[0]
+            col_indices = torch.where(cols_with_distances)[0]
+
+            if row_indices.numel() == 0 or col_indices.numel() == 0:
+                raise ValueError("No distances > threshold found in matrix")
+
+            all_idx = torch.cat([row_indices, col_indices])
+            min_idx = int(all_idx.min().item())
+            max_idx = int(all_idx.max().item()) + 1
+
+            submatrix = matrix[min_idx:max_idx, min_idx:max_idx]
+            return submatrix, min_idx, max_idx
+    except ImportError:
+        pass
+
+    # --- NumPy path ---
+    matrix = np.asarray(matrix)
     mask = matrix > threshold
-    
-    # Find rows and columns that have at least one value > threshold
+
     rows_with_distances = np.any(mask, axis=1)
     cols_with_distances = np.any(mask, axis=0)
-    
-    # Get indices
+
     row_indices = np.where(rows_with_distances)[0]
     col_indices = np.where(cols_with_distances)[0]
-    
+
     if len(row_indices) == 0 or len(col_indices) == 0:
         raise ValueError("No distances > threshold found in matrix")
-    
-    # Extract submatrix
+
     min_idx = min(row_indices.min(), col_indices.min())
     max_idx = max(row_indices.max(), col_indices.max()) + 1
-    
+
     submatrix = matrix[min_idx:max_idx, min_idx:max_idx]
-    
     return submatrix, min_idx, max_idx
 
 
@@ -40,6 +62,7 @@ def distance_matrix_to_3d_multiple(distance_matrix, num_solutions=8):
     Convert a distance matrix to multiple 3D coordinate sets using classical MDS.
     Returns multiple solutions using different eigenvector combinations and orientations.
     """
+    distance_matrix = distance_matrix.detach().cpu().numpy()
     n = distance_matrix.shape[0]
     
     # Check if matrix is symmetric
@@ -176,7 +199,7 @@ def write_rna_pdb(coordinates, sequence, filename, chain_id='A'):
         f.write("END\n")
 
 
-def convert_distance_matrix_to_pdb_multiple(matrix, sequence, output_filename='output.pdb', threshold=1.0, num_solutions=8):
+def convert_distance_matrix_to_pdb_multiple(matrix, sequence, output_filename='output.pdb', threshold=1.1, num_solutions=8):
     """
     Main function to convert a distance matrix to multiple PDB files.
     
@@ -195,8 +218,10 @@ def convert_distance_matrix_to_pdb_multiple(matrix, sequence, output_filename='o
     
     # Extract corresponding subsequence
     if len(sequence) < submatrix_size:
-        print(f"Sequence length ({len(sequence)}) is shorter than submatrix size ({submatrix_size})")
-        return None, None, None
+        submatrix_size = len(sequence)
+        submatrix = matrix[0:submatrix_size, 0:submatrix_size]
+#        print(f"Sequence length ({len(sequence)}) is shorter than submatrix size ({submatrix_size})")
+#        return None, None, None
     
     subsequence = sequence[start_idx:end_idx]
     print(f"Corresponding sequence: {subsequence}")
@@ -258,6 +283,7 @@ def fasta_to_dict(filename):
             result[key] = line.rstrip("\n")
     return(result)
 
+"""
 with open(f'{HOME_DIR}/pred.pickle', 'rb') as f:
 	data = pickle.load(f)
 
@@ -297,5 +323,7 @@ else:
     seqs = fasta_to_dict(args.fasta_sequences)
     for index, pdb in enumerate(pdbs):
         if (pdb in seqs.keys()):
+            print(pdb)
             matrix = data[index].reshape((SIZE,SIZE))
             result = convert_distance_matrix_to_pdb(matrix, seqs[pdb], pdb+".pdb")
+"""
