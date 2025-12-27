@@ -39,6 +39,16 @@ python src/inference.py
 
 Weights of models are available in link https://drive.google.com/file/d/1Si9N7BU08Ft_MyLmtfKD4dVLVIxgtmfI/view?usp=sharing
 
+
+**Prediction from FASTA file**: 
+
+For performing prediction for a custom FASTA file, you need to change the fasta field in the config/config_prediction.json file. After you must run `src/predict.py` for prediction.
+
+
+```bash 
+python src/predict.py
+```
+
 ## Data
 
 You can download the full dataset of (.ent files) using the following link: https://drive.google.com/file/d/1_uZ9coIGNIVSaW4-W0h4ZQYPE9Bm-Geu/view?usp=drive_link .<br/>
